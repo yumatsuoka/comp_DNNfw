@@ -9,7 +9,7 @@ from chainer.training import extensions
 from chainer.datasets import get_cifar10
 from chainer.datasets import get_cifar100
 
-from chainer_model import ResNet, ResBlock 
+from chainer_model import ResNet, ResBlock, AllConvNetBN 
 
 
 class TestModeEvaluator(extensions.Evaluator):
@@ -32,6 +32,8 @@ def main():
                         help='Number of sweeps over the dataset to train')
     parser.add_argument('--gpu', '-g', type=int, default=0,
                         help='GPU ID (negative value indicates CPU)')
+    parser.add_argument('--model', '-m', default='resnet',
+                        help='choose training model')
     parser.add_argument('--out', '-o', default='result',
                         help='Directory to output the result')
     parser.add_argument('--resume', '-r', default='',
@@ -56,7 +58,13 @@ def main():
         train, test = get_cifar100()
     else:
         raise RuntimeError('Invalid dataset choice.')
-    model = L.Classifier(ResNet(ResBlock))
+    if args.model == 'resnet':
+        model = L.Classifier(ResNet(ResBlock))
+    elif args.model == 'allconvnet':
+        model = L.Classifier(AllConvNetBN())
+    else:
+        raise RuntimeError('Invalid dataset choice.')
+
     if args.gpu >= 0:
         chainer.cuda.get_device(args.gpu).use()  # Make a specified GPU current
         model.to_gpu()  # Copy the model to the GPU
