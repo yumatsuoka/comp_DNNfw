@@ -16,10 +16,10 @@ from keras_model import resnet
 from keras_model import allconvnet
 
 
+model_choice = 'resnet'
+nb_epoch = 2
 batch_size = 100
 nb_classes = 10
-nb_epoch = 2
-model_choice = 'resnet'
 data_augmentation = False
 
 # input image dimensions
