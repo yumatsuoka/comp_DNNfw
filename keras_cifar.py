@@ -19,7 +19,7 @@ from keras_model import allconvnet
 batch_size = 100
 nb_classes = 10
 nb_epoch = 2
-model_choice = 'allconvnet'
+model_choice = 'resnet'
 data_augmentation = False
 
 # input image dimensions
@@ -44,7 +44,6 @@ model = _model(img_channels, img_rows, img_cols, nb_classes)
 # Let's train the model using RMSprop
 model.compile(loss='categorical_crossentropy',
               optimizer='Adam',
-              #optimizer='rmsprop',
               metrics=['accuracy'])
 
 X_train = X_train.astype('float32')

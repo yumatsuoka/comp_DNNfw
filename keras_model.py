@@ -14,14 +14,12 @@ def _conv_bn_relu(nb_filter, nb_row, nb_col, subsample=(1, 1)):
         conv = Convolution2D(nb_filter=nb_filter, nb_row=nb_row, nb_col=nb_col, subsample=subsample,
                              init="he_normal", border_mode="same")(input)
         norm = BatchNormalization()(conv)
-        #norm = BatchNormalization(mode=0, axis=1)(conv)
         return Activation("relu")(norm)
     return f
 
 def _bn_relu_conv(nb_filter, nb_row, nb_col, subsample=(1, 1)):
     def f(input):
         norm = BatchNormalization()(input)
-        #norm = BatchNormalization(mode=0, axis=1)(input)
         activation = Activation("relu")(norm)
         return Convolution2D(nb_filter=nb_filter, nb_row=nb_row, nb_col=nb_col, subsample=subsample,
                              init="he_normal", border_mode="same")(activation)
@@ -35,13 +33,15 @@ def _basic_block(nb_filters, init_subsample=(1, 1)):
     return f
 
 def _shortcut(input, residual):
-    stride_width = input._keras_shape[1] / residual._keras_shape[1]
-    stride_height = input._keras_shape[2] / residual._keras_shape[2]
+    stride_width = input._keras_shape[1] // residual._keras_shape[1]
+    stride_height = input._keras_shape[2] // residual._keras_shape[2]
     equal_channels = residual._keras_shape[3] == input._keras_shape[3]
+	# debug
+    print(stride_width, stride_height, equal_channels)
 
     shortcut = input
     if stride_width > 1 or stride_height > 1 or not equal_channels:
-        shortcut = Convolution2D(nb_filter=residual._keras_shape[1], nb_row=1, nb_col=1,
+        shortcut = Convolution2D(nb_filter=residual._keras_shape[3], nb_row=1, nb_col=1,
                                  subsample=(stride_width, stride_height),
                                  init="he_normal", border_mode="valid")(input)
 
@@ -58,15 +58,16 @@ def _residual_block(block_function, nb_filters, repetations, is_first_layer=Fals
     return f
 
 def resnet(img_channels=3, img_rows=32, img_cols=32, nb_classes=10):
-    input = Input(shape=(img_channels, img_rows, img_cols))
+    input = Input(shape=(img_rows, img_cols, img_channels))
 
     conv1 = _conv_bn_relu(nb_filter=64, nb_row=3, nb_col=3)(input)
-    #pool1 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), border_mode="same")(conv1)
+    pool1 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), border_mode="same")(conv1)
 
     # Build residual blocks..
     block_fn = _basic_block
-    block1 = _residual_block(block_fn, nb_filters=64, repetations=18, is_first_layer=True)(conv1)
-    print("finish block1")
+    print("before block1", pool1)
+    block1 = _residual_block(block_fn, nb_filters=64, repetations=18, is_first_layer=True)(pool1)
+    print("finish block1", block1.shape)
     block2 = _residual_block(block_fn, nb_filters=128, repetations=18)(block1)
     print("finish block2")
     block3 = _residual_block(block_fn, nb_filters=256, repetations=18)(block2)
@@ -119,51 +120,3 @@ def allconvnet(img_channels=3, img_rows=32, img_cols=32, nb_classes=10):
 
     return model
 
-"""
-## AllConvNet
-model = Sequential()
-
-#model.add(Dropout(0.2, input_shape=X_train.shape[1:]))
-#model.add(Convolution2D(96, 3, 3, border_mode='same'))
-model.add(Convolution2D(96, 3, 3, border_mode='same',
-                        input_shape=X_train.shape[1:]))
-model.add(Activation('relu'))
-
-model.add(Convolution2D(96, 3, 3, border_mode='same'))
-model.add(Activation('relu'))
-
-## stridced conv
-model.add(Convolution2D(96, 3, 3, border_mode='valid', subsample=(2, 2)))
-## add bn1
-model.add(BatchNormalization())
-model.add(Activation('relu'))
-
-model.add(Convolution2D(192, 3, 3, border_mode='same'))
-model.add(Activation('relu'))
-
-model.add(Convolution2D(192, 3, 3, border_mode='same'))
-model.add(Activation('relu'))
-
-## stridced conv
-model.add(Convolution2D(192, 3, 3, border_mode='valid', subsample=(2, 2)))
-## add bn2
-model.add(BatchNormalization())
-model.add(Activation('relu'))
-
-model.add(Convolution2D(192, 3, 3, border_mode='same'))
-model.add(Activation('relu'))
-
-## replace fc to 1x1 convolution
-model.add(Convolution2D(192, 1, 1, border_mode='valid'))
-model.add(Activation('relu'))
-
-model.add(Convolution2D(nb_classes, 1, 1, border_mode='valid'))
-model.add(Activation('relu'))
-
-## global average pooling
-model.add(AveragePooling2D(pool_size=(7, 7)))
-
-model.add(Flatten())
-model.add(Activation('softmax'))
-
-"""
