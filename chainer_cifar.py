@@ -76,8 +76,8 @@ def main():
     if args.gpu >= 0 and args.gpu_num >= 1:
         chainer.cuda.get_device(args.gpu).use()  # Make a specified GPU current
 
-    optimizer = chainer.optimizers.MomentumSGD(0.01)
-    #optimizer = chainer.optimizers.Adam()
+    #optimizer = chainer.optimizers.MomentumSGD(0.01)
+    optimizer = chainer.optimizers.Adam()
     optimizer.setup(model)
     #optimizer.add_hook(chainer.optimizer.WeightDecay(5e-4))
     
