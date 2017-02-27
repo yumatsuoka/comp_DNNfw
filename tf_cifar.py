@@ -34,6 +34,8 @@ print(train_size, image_size, num_channels, num_labels)
 train_data = dataset['train']['data'].astype(numpy.float32)
 test_data = dataset['test']['data'].astype(numpy.float32)
 
+print("debug1")
+
 ### convert train and test label to one-hot vector
 def dense_to_one_hot(labels_dense, num_classes):
     num_labels = labels_dense.shape[0]
@@ -42,7 +44,9 @@ def dense_to_one_hot(labels_dense, num_classes):
     labels_one_hot.flat[index_offset + labels_dense.ravel()] = 1
     return labels_one_hot
 
+print(type(dataset['train']['target'][0]))
 train_target = dense_to_one_hot(dataset['train']['target'], num_labels)
+print("debug2")
 test_target = dense_to_one_hot(dataset['test']['target'], num_labels)
 
 
@@ -157,7 +161,7 @@ def model(data, train=False):
     
     # comp graph
     phase_train = tf.placeholder(tf.bool, (BATCH_SIZE, 1), name='phase_train') if train else None
-    conv1 = tf.nn.dropout(conv_stpad_def(data, conv1_weights, conv1_biases, 1, 'VALID'), 0.2, seed=SEED)
+    conv1 = tf.nn.dropout(conv_stpad_def(data, conv1_weights, conv1_biases, 1, 'SAME'), 0.2, seed=SEED)
     conv2 = conv_stpad_def(conv1, conv2_weights, conv2_biases, 1, 'SAME')
     # global average pooling
     conv3 = conv_stpad_def(conv2, conv3_weights, conv3_biases, 2, 'VALID')
