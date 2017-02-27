@@ -15,29 +15,37 @@ slim = tf.contrib.slim
 n_kernel = [96, 192]
 
 def allconvnet(x, y):
+    n_class=10
     y = slim.one_hot_encoding(y, n_class)
 	
-    with slim.arg_scope([slim.conv2d, slim.batch_norm], 
-              activation_fn=tf.nn.relu, normalizer_fn=slim.batch_norm):
-        dp1 = slim.dropout(x, 0.2)
-        conv1 = slim.conv2d(dp1, n_kernel[0], kernel_size=3, activation_fn=tf.nn.relu)
-        conv2 = slim.conv2d(conv1, n_kernel[0], kernel_size=3, activation_fn=tf.nn.relu)
+    with slim.arg_scope([slim.conv2d], activation_fn=tf.nn.relu, normalizer_fn=slim.batch_norm):
+        #dp1 = slim.dropout(x, 0.2)
+        conv1 = slim.conv2d(x, n_kernel[0], kernel_size=3)
+        bn1 = slim.batch_norm(conv1)
+        conv2 = slim.conv2d(bn1, n_kernel[0], kernel_size=3)
+        bn2 = slim.batch_norm(conv2)
         # global average pooling
-        conv3 = slim.conv2d(conv2, n_kernel[0], kernel_size=3, stride=2, padding='VALID', activation_fn=tf.nn.relu)
+        conv3 = slim.conv2d(bn2, n_kernel[0], kernel_size=3, stride=2, padding='VALID')
         bn3 = slim.batch_norm(conv3)
-        conv4 = slim.conv2d(bn3, n_kernel[1], kernel_size=3, activation_fn=tf.nn.relu)
-        conv5 = slim.conv2d(conv4, n_kernel[1], kernel_size=3, activation_fn=tf.nn.relu)
+        conv4 = slim.conv2d(bn3, n_kernel[1], kernel_size=3)
+        bn4 = slim.batch_norm(conv4)
+        conv5 = slim.conv2d(bn4, n_kernel[1], kernel_size=3)
+        bn5 = slim.batch_norm(conv5)
         # global average pooling
-        conv6 = slim.conv2d(conv5, n_kernel[1], kernel_size=3, stride=2, padding='VALID', activation_fn=tf.nn.relu)
+        conv6 = slim.conv2d(bn5, n_kernel[1], kernel_size=3, stride=2, padding='VALID')
         bn6 = slim.batch_norm(conv6)
-        conv7 = slim.conv2d(bn6, n_kernel[1], kernel_size=3, activation_fn=tf.nn.relu)
-        conv8 = slim.conv2d(conv7, n_kernel[1], kernel_size=1, padding='VALID', activation_fn=tf.nn.relu)
-        conv9 = slim.conv2d(conv8, n_class, kernel_size=1, padding='VALID', activation_fn=tf.nn.relu)
-        gap = slim.avg_pool2d(conv9, [6, 6], scope='logits') 
-        logits = slim.flatten(gap)
+        conv7 = slim.conv2d(bn6, n_kernel[1], kernel_size=3)
+        bn7 = slim.batch_norm(conv7)
+        conv8 = slim.conv2d(bn7, n_kernel[1], kernel_size=1, padding='VALID')
+        bn8 = slim.batch_norm(conv8)
+        conv9 = slim.conv2d(bn8, n_class, kernel_size=1, padding='VALID')
+        bn9 = slim.batch_norm(conv9)
+        gap = slim.avg_pool2d(bn9, [6, 6]) 
+        logits = slim.flatten(gap, scope='logits')
         loss = slim.losses.softmax_cross_entropy(logits, y, scope='loss')
-        train_op = slim.optimize_loss(loss, slim.get_global_step(), learning_rate=0.01, optimizer='Adam')
-    return {'class': tf.argmax(logits, 1), 'prob': slim.softmax(logits), loss, train_op}
+        train_op = slim.optimize_loss(loss, slim.get_global_step(), learning_rate=0.001, optimizer='Adam')
+    #return slim.softmax(logits), loss, train_op
+    return {'class': tf.argmax(logits, 1), 'prob': slim.softmax(logits)}, loss , train_op
 
 
 
