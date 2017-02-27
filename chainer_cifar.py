@@ -28,6 +28,8 @@ def main():
                         help='The dataset to use: cifar10 or cifar100')
     parser.add_argument('--batchsize', '-b', type=int, default=100,
                         help='Number of images in each mini-batch')
+    parser.add_argument('--same_batch', '-s', type=bool, default=False,
+                        help='if True and use multi gpu, batchsize*gpu_num')
     parser.add_argument('--epoch', '-e', type=int, default=10,
                         help='Number of sweeps over the dataset to train')
     parser.add_argument('--gpu_num', '-gn', type=int, default=1,
@@ -64,10 +66,10 @@ def main():
         raise RuntimeError('Invalid dataset choice.')
     if args.model == 'resnet':
         print('# cnn_model: resnet')
-        model = L.Classifier(ResNet(ResBlock))
+        model = L.Classifier(ResNet(class_labels=class_labels))
     elif args.model == 'allconvnet':
         print('# cnn_model: AllConvNetBN')
-        model = L.Classifier(AllConvNetBN())
+        model = L.Classifier(AllConvNetBN(class_labels))
     else:
         raise RuntimeError('Invalid dataset choice.')
 
@@ -78,9 +80,13 @@ def main():
     #optimizer = chainer.optimizers.Adam()
     optimizer.setup(model)
     #optimizer.add_hook(chainer.optimizer.WeightDecay(5e-4))
-
-    train_iter = chainer.iterators.SerialIterator(train, args.batchsize)
-    test_iter = chainer.iterators.SerialIterator(test, args.batchsize,
+    
+    
+    #multi gpu環境、つまりParallelUpdaterを使った並列GPU処理だとbatchsize = batchsize/gpu_num
+    batchsize = args.batchsize * args.gpu_num if args.same_batch else args.batchsize
+    #batchsize = args.batchsize * args.gpu_num if args.gpu_num >= 2 else args.batchsize
+    train_iter = chainer.iterators.SerialIterator(train, batchsize)
+    test_iter = chainer.iterators.SerialIterator(test, batchsize,
                                                  repeat=False, shuffle=False)
     # Set up a trainer
     if args.gpu_num <= 1:
@@ -96,9 +102,6 @@ def main():
             train_iter, 
             optimizer, 
             devices=_devices,
-            #devices={'main': args.gpu0, 'second': args.gpu1, 
-            #        'third': args.gpu2, 'fourth': args.gpu3
-            #},
         )
     trainer = training.Trainer(updater, (args.epoch, 'epoch'), out=dump_dir)
 
@@ -107,7 +110,7 @@ def main():
 
     # Reduce the learning rate by half every 25 epochs.
     trainer.extend(extensions.ExponentialShift('lr', 0.5),
-                   trigger=(25, 'epoch'))
+                   trigger=(20, 'epoch'))
 
     # Dump a computational graph from 'loss' variable at the first iteration
     # The "main" refers to the target link of the "main" optimizer.

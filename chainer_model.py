@@ -28,7 +28,7 @@ class ResBlock(chainer.Chain):
         return F.relu(h + x)
 
 class ResNet(chainer.Chain):
-    def __init__(self, block_class, n=18):
+    def __init__(self, block_class, n=18, class_labels=10):
         super(ResNet, self).__init__()
         w = math.sqrt(2)
         links = [('conv1', L.Convolution2D(3, 16, 3, 1, 0, w))]
@@ -45,7 +45,7 @@ class ResNet(chainer.Chain):
         links += [('_apool{}'.format(len(links)),
                    F.AveragePooling2D(8, 1, 0))]
         links += [('fc{}'.format(len(links)),
-                   L.Linear(64, 10))]
+                   L.Linear(64, class_labels))]
         for link in links:
             if not link[0].startswith('_'):
                 self.add_link(*link)
@@ -63,7 +63,7 @@ class ResNet(chainer.Chain):
 ### AllConvNet
 class AllConvNetBN(chainer.Chain):
 
-    def __init__(self):
+    def __init__(self, class_labels=10):
         super(AllConvNetBN, self).__init__(
                 conv1 = L.Convolution2D(3, 96, 3, pad=1),
                 conv2 = L.Convolution2D(96, 96, 3, pad=1),
@@ -77,11 +77,13 @@ class AllConvNetBN(chainer.Chain):
                 conv6 = L.Convolution2D(192, 192, 3, stride=2),
                 conv7 = L.Convolution2D(192, 192, 3, pad=1),
                 conv8 = L.Convolution2D(192, 192, 1),
-                conv9 = L.Convolution2D(192, 10, 1),
+                conv9 = L.Convolution2D(192, class_labels, 1),
         )
+        self.train = True
+        self.class_labels = class_labels
 
-    def __call__(self, x, t=None, train=True):
-        h = F.relu(self.conv1(F.dropout(x, ratio=0.2, train=train)))
+    def __call__(self, x):
+        h = F.relu(self.conv1(F.dropout(x, ratio=0.2, train=self.train)))
         h = F.relu(self.conv2(h))
         h = F.relu(self.bn1(self.conv3(h)))
         h = F.relu(self.conv4(h))
@@ -91,5 +93,5 @@ class AllConvNetBN(chainer.Chain):
         h = F.relu(self.conv8(h))
         h = F.relu(self.conv9(h))
         # global average pooling
-        h = F.reshape(F.average_pooling_2d(h, 6), (x.data.shape[0], 10))
+        h = F.reshape(F.average_pooling_2d(h, 6), (x.data.shape[0], self.class_labels))
         return h
