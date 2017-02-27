@@ -66,11 +66,11 @@ def resnet(img_channels=3, img_rows=32, img_cols=32, nb_classes=10):
     # Build residual blocks..
     block_fn = _basic_block
     print("before block1", pool1)
-    block1 = _residual_block(block_fn, nb_filters=64, repetations=18, is_first_layer=True)(pool1)
+    block1 = _residual_block(block_fn, nb_filters=96, repetations=18, is_first_layer=True)(pool1)
     print("finish block1", block1.shape)
     block2 = _residual_block(block_fn, nb_filters=128, repetations=18)(block1)
     print("finish block2")
-    block3 = _residual_block(block_fn, nb_filters=256, repetations=18)(block2)
+    block3 = _residual_block(block_fn, nb_filters=192, repetations=18)(block2)
     print("finish block3")
 
     # Classifier block
@@ -85,9 +85,8 @@ def resnet(img_channels=3, img_rows=32, img_cols=32, nb_classes=10):
 ### AllConvNet
 def allconvnet(img_channels=3, img_rows=32, img_cols=32, nb_classes=10):
     input = Input(shape=(img_rows, img_cols, img_channels))
-    #dp1 = Dropout(0.2, input_shape=X_train.shape[1:])(input)
-    #conv1 = Convolution2D(96, 3, 3, border_mode='same')(dp1)
-    conv1 = Convolution2D(96, 3, 3, border_mode='same')(input)
+    dp1 = Dropout(0.2)(input)
+    conv1 = Convolution2D(96, 3, 3, border_mode='same')(dp1)
     relu1 = Activation('relu')(conv1)
     conv2 = Convolution2D(96, 3, 3, border_mode='same')(relu1)
     relu2 = Activation('relu')(conv2)
@@ -113,7 +112,7 @@ def allconvnet(img_channels=3, img_rows=32, img_cols=32, nb_classes=10):
     conv9 = Convolution2D(nb_classes, 1, 1, border_mode='valid')(relu8)
     relu9 = Activation('relu')(conv9)
     ## global average pooling
-    gap = AveragePooling2D(pool_size=(7, 7))(relu9)
+    gap = AveragePooling2D(pool_size=(6, 6))(relu9)
     flt = Flatten()(gap)
     sftm = Activation('softmax')(flt)
     model = Model(input=input, output=sftm)

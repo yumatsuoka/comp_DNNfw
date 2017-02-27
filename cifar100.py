@@ -21,7 +21,7 @@ def convert_image(data_type='train'):
     dir_name = {'train':u'cifar-100-python/train', 'test':u'cifar-100-python/test'}
     with tarfile.open(fname, 'r:gz') as f:
         r_data = f.extractfile(dir_name[data_type])
-        train_dic = six.moves.cPickle.load(r_data)
+        train_dic = six.moves.cPickle.load(r_data, encoding='latin1')
         data = np.asarray([d.reshape(3, 32, 32) for d in train_dic['data']], dtype=np.uint8)
         # if visualize image or use tensorflow, remove bellow commentout
         data = np.asarray([d.transpose(1,2,0) for d in data])
@@ -31,7 +31,7 @@ def convert_image(data_type='train'):
 
 def load(name='cifar100.pkl'):
     with open(name, 'rb') as data:
-        cifar100 = six.moves.cPickle.load(data)
+        cifar100 = six.moves.cPickle.load(data, encoding='latin1')
     return cifar100
 
 

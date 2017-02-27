@@ -16,7 +16,7 @@ from keras_model import resnet
 from keras_model import allconvnet
 
 
-model_choice = 'resnet'
+model_choice = 'allconvnet'
 nb_epoch = 2
 batch_size = 100
 nb_classes = 10

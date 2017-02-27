@@ -9,7 +9,6 @@ import numpy
 import tensorflow as tf
 from sklearn.model_selection import KFold
 import matplotlib.pyplot as plt
-learn = tf.contrib.learn
 slim = tf.contrib.slim
 
 import cifar10
@@ -68,40 +67,6 @@ validation_labels = dense_to_one_hot(_validation_labels, num_labels)
 test_labels       = dense_to_one_hot(_test_labels, num_labels)
 
 print("train_data:{}, train_labels:{}, validation_data:{}, validation_labels:{}, test_data:{}, test_labels:{}".format(train_data.shape, train_labels.shape, validation_data.shape, validation_labels.shape, test_data.shape, test_labels.shape))
-
-
-
-from tf_model import allconvnet
-
-model = allconvnet
-
-###
-
-class CustomMonitor(learn.monitors.EveryN):
-    def begin(self, max_steps):
-        super(CustomMonitor, self).begin(max_steps)
-        print('Start training')
-
-    def end(self):
-        super(CustomMonitor, self).end()
-        print('Completed')
-
-    def every_n_step_begin(self, step):
-        return ['loss/value:0']
-
-    def every_n_step_end(self, step, outputs):
-        print('Step %d - loss: %s' % (step, outputs['loss/value:0']))
-
-classifier = learn.Estimator(model_fn=model, model_dir='/tmp/my_model')
-classifier.fit(x=X_train, y=y_train, steps=20000, batch_size=128, 
-               monitors=learn.monitors.get_default_monitors(save_summary_steps=1000)+\
-                        [CustomMonitor(every_n_steps=10, first_n_steps=0)])
-
-###
-
-
-
-
 
 
 # This is where training samples and labels are fed to the graph.

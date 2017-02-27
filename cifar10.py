@@ -24,7 +24,7 @@ def convert_train_image():
         for i in six.moves.range(batches):
             batch_name = dir_name + u'/data_batch_' + str(i+1)
             r_data = f.extractfile(batch_name)
-            batch = six.moves.cPickle.load(r_data)
+            batch = six.moves.cPickle.load(r_data, encoding='latin1')
             data[i*batchsize:(i+1)*batchsize] = batch['data'].reshape(batchsize, 32, 32, 3)
             labels[i*batchsize:(i+1)*batchsize] = batch['labels']
         # if use chainer, replace above line to below one
@@ -36,7 +36,7 @@ def convert_test_image():
         dir_name = 'cifar-10-batches-py'
         batch_name = dir_name + '/test_batch'
         r_data = f.extractfile(batch_name)
-        batch = six.moves.cPickle.load(r_data)
+        batch = six.moves.cPickle.load(r_data, encoding='latin1')
         data = batch['data'].reshape(batchsize, 32, 32, 3)
         # if use chainer, remove commentout
         #data = data.transpose(0, 2, 3, 1)

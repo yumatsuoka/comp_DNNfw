@@ -28,29 +28,30 @@ class ResBlock(chainer.Chain):
         return F.relu(h + x)
 
 class ResNet(chainer.Chain):
-    def __init__(self, block_class, n=18, class_labels=10):
+    def __init__(self, block_class=ResBlock, n=18, class_labels=10):
         super(ResNet, self).__init__()
         w = math.sqrt(2)
-        links = [('conv1', L.Convolution2D(3, 16, 3, 1, 0, w))]
-        links += [('bn1', L.BatchNormalization(16))]
+        links = [('conv1', L.Convolution2D(3, 96, 3, 1, 0, w))]
+        links += [('bn1', L.BatchNormalization(96))]
         for i in range(n):
-            links += [('res{}'.format(len(links)), block_class(16, 16))]
-        for i in range(n):
-            links += [('res{}'.format(len(links)),
-                       block_class(32 if i > 0 else 16, 32, 1 if i > 0 else 2))]
+            links += [('res{}'.format(len(links)), block_class(96, 96))]
         for i in range(n):
             links += [('res{}'.format(len(links)),
-                       block_class(64 if i > 0 else 32, 64,
+                       block_class(128 if i > 0 else 96, 128, 1 if i > 0 else 2))]
+        for i in range(n):
+            links += [('res{}'.format(len(links)),
+                       block_class(192 if i > 0 else 128, 192,
                                    1 if i > 0 else 2))]
         links += [('_apool{}'.format(len(links)),
                    F.AveragePooling2D(8, 1, 0))]
         links += [('fc{}'.format(len(links)),
-                   L.Linear(64, class_labels))]
+                   L.Linear(192, class_labels))]
         for link in links:
             if not link[0].startswith('_'):
                 self.add_link(*link)
         self.forward = links
         self.train = True
+        print(links)
     def __call__(self, x):
         for name, f in self.forward:
             if 'res' in name:
@@ -84,7 +85,7 @@ class AllConvNetBN(chainer.Chain):
                 conv8 = L.Convolution2D(192, 192, 1),
                 bn8 = L.BatchNormalization(192),
                 conv9 = L.Convolution2D(192, class_labels, 1),
-                bn9 = L.BatchNormalization(192),
+                bn9 = L.BatchNormalization(10),
         )
         self.train = True
         self.class_labels = class_labels

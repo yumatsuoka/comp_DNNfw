@@ -59,7 +59,7 @@ def main():
         class_labels = 10
         train, test = get_cifar10()
     elif args.dataset == 'cifar100':
-        print('Using CIFAR100 dataset.')
+        print('# Using CIFAR100 dataset.')
         class_labels = 100
         train, test = get_cifar100()
     else:
@@ -84,20 +84,19 @@ def main():
     
     #multi gpu環境、つまりParallelUpdaterを使った並列GPU処理だとbatchsize = batchsize/gpu_num
     batchsize = args.batchsize * args.gpu_num if args.same_batch else args.batchsize
-    #batchsize = args.batchsize * args.gpu_num if args.gpu_num >= 2 else args.batchsize
     train_iter = chainer.iterators.SerialIterator(train, batchsize)
     test_iter = chainer.iterators.SerialIterator(test, batchsize,
                                                  repeat=False, shuffle=False)
     # Set up a trainer
     if args.gpu_num <= 1:
-        print("use one gpu which is main: ", args.gpu)
+        print("# main gpu: ", args.gpu)
         model.to_gpu()  # Copy the model to the GPU
         updater = training.StandardUpdater(train_iter, optimizer,device=args.gpu)
     elif args.gpu_num >= 2: 
-        _devices = {'main': args.gpu}
+        _devices = {'# main gpu': args.gpu}
         for g_idx in range(1, args.gpu_num):
             _devices[str(g_idx)] = g_idx
-        print("using gpus: ", _devices)
+        print("# using gpus: ", _devices)
         updater = training.ParallelUpdater(
             train_iter, 
             optimizer, 
@@ -109,7 +108,7 @@ def main():
     trainer.extend(TestModeEvaluator(test_iter, model, device=args.gpu))
 
     # Reduce the learning rate by half every 25 epochs.
-    trainer.extend(extensions.ExponentialShift('lr', 0.5),
+    trainer.extend(extensions.ExponentialShift('alpha', 0.5),
                    trigger=(20, 'epoch'))
 
     # Dump a computational graph from 'loss' variable at the first iteration
