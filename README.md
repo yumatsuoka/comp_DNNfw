@@ -8,6 +8,20 @@ Run neural network on multi gpu
 - scikit-learn==0.18.1
 - tensorflow-gpu==1.0.0
 
+## How to use
+
+```
+dataset = 'cifar10'
+fm = 'tf'
+
+cifar = cifar10.py if dataset == 'cifar10' else cifar100.py
+python cifar
+
+framework = {'tf': tf_pure_cifar.py, 'tfslim': tf_slim_learn_cifar.py,
+             'chainer': chainer_cifar.py, 'keras': keras_cifar.py}
+python framework[fm]
+```
+
 ## Code
 - pure_tf_cifar.py => run tensorflow code with "pure-tensorflow modules"
 - chainer_cifar.py => run chainer code
