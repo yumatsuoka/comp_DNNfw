@@ -93,7 +93,8 @@ def main():
         model.to_gpu()  # Copy the model to the GPU
         updater = training.StandardUpdater(train_iter, optimizer,device=args.gpu)
     elif args.gpu_num >= 2: 
-        _devices = {'# main gpu': args.gpu}
+        _devices = {'main': args.gpu}
+        print("# main gpu: ", args.gpu)
         for g_idx in range(1, args.gpu_num):
             _devices[str(g_idx)] = g_idx
         print("# using gpus: ", _devices)
