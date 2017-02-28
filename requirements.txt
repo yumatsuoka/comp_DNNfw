@@ -1,0 +1,5 @@
+chainer==1.21.0
+conda==4.3.8
+Keras==1.2.2
+scikit-learn==0.18.1
+tensorflow-gpu==1.0.0
