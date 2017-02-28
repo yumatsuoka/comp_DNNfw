@@ -1,18 +1,18 @@
 # coding: utf-8
 #!/usr/bin/env python
 
+import six
 import numpy
 import tensorflow as tf
 
 
 class AllConvNetBN:
-    def __init__(self):
+    def __init__(self, dim_img=32, channel_img=3, batchsize=100, ndim=100):
         self.dim_img = 32
         self.channel_img = 3
         self.batchsize = 32
         self.ndim = 128
         self.n_class = 10
-        self.learning_rate = 1e-3
         self.x = tf.placeholder(tf.float32, [None, self.dim_img, self.dim_img, channel_img])
         self.t = tf.placeholder(tf.float32, [None, self.n_class])
         self.output = self.build_network()
@@ -52,26 +52,92 @@ class AllConvNetBN:
         return 0
 
 class Trainer:
-    def __init__(self, dataset, ):
+    def __init__(self, model, dataset, epoch=100, lr=1e-3):
         _dataset = separete_data(datset)
-        self.train_data = dataset['train']
-        self.train_data = dataset['train']
+        self.model = model
+        self.train_data = dataset['train']['data']
+        self.train_label = dataset['train']['target']
+        self.test_data = dataset['test']['data']
+        self.test_label = dataset['test']['target']
 
-    def separete_data():
-        pass
+        self.train_size = len(self.train_label)
+        self.test_size = len(self.test_label)
+        self.batchsize = self.model.batchsize
+        self.batch_index = self.train_size // self.batchsize
+        self.epoch = epoch
+        self.learning_rate = lr
+        self.data_augment = False
 
-    def fit(x, ):
-        pass
+        self.sess = tf.Session()
+        self.global_step = tf.Variable(0, name='global_step', trainable=False)
+        self.optimizer = tf.train.AdamOptimizer(\
+                learning_rate=self.learning_rate).minimize(\
+                self.loss, global_step=global_step)
+        sess.run(tf.global_variables_initializer())
 
-    def validate():
-        pass
-        
+        if tf.train/get_checkpoint_state('allconvnet'):
+            saver = tf.train.Saver()
+            ckpt = tf.train.get_checkpoint_state('allconvnet/')
+            last_model = ckpt.model_checkpoint_path
+            print('# restoring the model: {}'.format(last_model))
+            saver.restore(sess, last_model)
 
+    def fit(self):
+        for i in six.moves.range(self.epoch):
+            sum_loss = 0
+            perm = numpy.random.permutation(self.train_size)
+            x_train = self.train_data[perm]
+            t_train = self.train_label[perm]
+            for i in tqdm(six.moves.range(self.batch_index)):
+                x_batch = x_train[i*self.batchsize:(i+1)*self.batchsize] 
+                t_batch = t_train[i*self.batchsize:(i+1)*self.batchsize] 
+                if self.data_augment:
+                    x_batch = augument_images(x_batch)
+                self.optimizer.run(feed_dict={\
+                        self.x: x_batch.astype(np.float32), 
+                        self.t: t_batch.astype(np.float32)}, session=sess)
+                loss_value = self.loss.eval(\
+                        self.x: x_batch.astype(np.float32),\
+                        self.t: t_batch.astype(np.float32)}, session=sess)
+                sum_loss += loss_value
+            print('# epoch: {}'.format(epoch+1))
+            print('# sum loss: {}'.format(sum_loss))
+            print('# validation')
+            prediction = np.array([])
+            answer = np.array([])
+            for i in six.moves.range(0, self.test_size, self.batchsize):
+                x_batch = self.test_data[i: i+self.batchsize]
+                y_batch = self.test_label[i: i+self.batchsize]
+                output = self.pred.eval(feed_dict={\
+                        self.x: x_batch.astype(np.float32)}, session=sess)
+                prediction = np.concatenate([prediction, np.argmax(output, 1)])
+                answer = np.concatenate([answer, np.argmax(t_batch, 1)])
+            correct_prediction = np.equal(prediction, answer)
+            accuracy = np.mean(correct_prediction)
+            print('training acuracy: {} %',.format(acuracy*100))
 
     
+    def test(self, x):
+        y = self.model.classify()
+        return 0
+
+        
+
+num_labels = len(list(set(self.train_label)))
+@static
+def separete_data():
+    # bool型でcross_validationを使って
+    # validation dataを作るメソッド 
+    # ついでにpermutate 
+    pass
+    
 if __name__ == "__main__":
-    model = VGG16()
-    model.train() 
+    detaset = [1,]
+    epoch = 10
+    model = AllConvNetBN()
+    trainer = Trainer(model, dataset, epoch)
+    trainer.fit()
+    trainer.test()
 
         
 
