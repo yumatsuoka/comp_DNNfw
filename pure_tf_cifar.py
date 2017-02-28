@@ -3,13 +3,14 @@
 
 
 # python2, python3の互換性のためのおまじない
+from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 
 import numpy
 import tensorflow as tf
 from sklearn.model_selection import KFold
-import matplotlib.pyplot as plt
-slim = tf.contrib.slim
+#slim = tf.contrib.slim
 
 import cifar10
 import cifar100
@@ -128,7 +129,7 @@ def model(data, train=False):
     def avg_pool(data, size=8, stride=2):
         return tf.nn.avg_pool(data, ksize=[1, size, size, 1], strides=[1, stride, stride, 1], padding='VALID')
 
-    # batch_normalization
+    # 1_batch_normalization
     def batch_norm(x, n_out, phase_train):
         with tf.variable_scope('bn'):
             beta = tf.Variable(tf.constant(0.0, shape=[n_out]),
@@ -150,6 +151,7 @@ def model(data, train=False):
         return normed
     ####
 
+    # 2_batch_normalization
     def batch_norm_wrapper(inputs, phase_train=None, decay=0.99):
         epsilon = 1e-5
         out_dim = inputs.get_shape()[-1]
@@ -173,21 +175,21 @@ def model(data, train=False):
             train_var = pop_var.assign(ema.average(batch_var))
             with tf.control_dependencies([train_mean, train_var]):
                 return tf.nn.batch_normalization(inputs, train_mean, train_var, beta, scale, epsilon),
-        
+        #return update if phase_train else average 
         return tf.cond(phase_train, update, average) 
     
-    # comp graph
-    #phase_train = tf.placeholder(tf.bool, (BATCH_SIZE, 1), name='phase_train') if train else None
+    # ###comp graph
+    phase_train = tf.placeholder(tf.bool, (BATCH_SIZE, 1), name='phase_train') if train else None
     #dp1 = tf.nn.dropout(data, keep_prob=0.5, seed=SEED)
     conv1 = conv_stpad_def(data, conv1_weights, conv1_biases, 1, 'SAME')
     conv2 = conv_stpad_def(conv1, conv2_weights, conv2_biases, 1, 'SAME')
     # global average pooling
     conv3 = conv_stpad_def(conv2, conv3_weights, conv3_biases, 2, 'VALID')
     #bn1 = batch_norm(conv3, CHANNEL_dense1, phase_train)
-    #bn1 = batch_norm_wrapper(conv3, phase_train)
+    bn1 = batch_norm_wrapper(conv3, phase_train)
     #bn1 = slim.batch_norm(conv3, is_training=train)
-    #conv4 = conv_stpad_def(bn1, conv4_weights, conv4_biases, 1, 'SAME')
-    conv4 = conv_stpad_def(conv3, conv4_weights, conv4_biases, 1, 'SAME')
+    conv4 = conv_stpad_def(bn1, conv4_weights, conv4_biases, 1, 'SAME')
+    #conv4 = conv_stpad_def(conv3, conv4_weights, conv4_biases, 1, 'SAME')
     conv5 = conv_stpad_def(conv4, conv5_weights, conv5_biases, 1, 'SAME')
     # global average pooling
     conv6 = conv_stpad_def(conv5, conv6_weights, conv6_biases, 2, 'VALID')
@@ -311,34 +313,3 @@ for k in range(EPOCH):
 
     test_error, confusions = error_rate(test_prediction.eval(), test_labels)
     print('Test error: %.1f%%' % test_error)
-
-"""
-### optional visualize
-plt.clf()
-plt.xlabel('Actual')
-plt.ylabel('Predicted')
-plt.grid(False)
-plt.xticks(numpy.arange(num_labels))
-plt.yticks(numpy.arange(num_labels))
-plt.imshow(confusions, cmap=plt.cm.jet, interpolation='nearest');
-
-plt.xlim([-0.5, 1.5])
-plt.ylim([1.5, -0.5])
-
-for i, cas in enumerate(confusions):
-    for j, count in enumerate(cas):
-        if count > 0:
-            xoff = .07 * len(str(count))
-            plt.text(j-xoff, i+.2, int(count), fontsize=48, color='white')
-
-plt.savefig()
-
-
-## plot a number of classified label
-plt.clf()
-plt.xticks(numpy.arange(num_labels))
-plt.xlim(range(num_labels))
-plt.hist(numpy.argmax(test_prediction.eval(), 1));
-plt.savefig("hist.png")
-
-"""
