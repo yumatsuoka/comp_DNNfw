@@ -7,11 +7,9 @@ import numpy
 import tensorflow as tf
 from tqdm import tqdm
 
+
 class Trainer:
-    def __init__(self, model, dataset, batchsize=100, epoch=100, lr=1e-3):
-        # future work if use validatin and test data, separete validation data
-        #if validate == True
-        #_dataset = separete_data(datset)
+    def __init__(self, model, dataset, batchsize=100, epoch=100, lr=5e-2):
         self.model = model
         self.train_data = dataset['train']['data']
         self.train_label = dataset['train']['target']
@@ -39,15 +37,6 @@ class Trainer:
                 learning_rate=self.learning_rate).minimize(\
                 self.model.loss, global_step=self.global_step)
         self.sess.run(tf.global_variables_initializer())
-
-        if False:
-        #if tf.train/get_checkpoint_state('allconvnet'):
-            print("なにをするための関数か多田さんに聞いてみる20170301")
-            saver = tf.train.Saver()
-            ckpt = tf.train.get_checkpoint_state('allconvnet/')
-            last_model = ckpt.model_checkpoint_path
-            print('# restoring the model: {}'.format(last_model))
-            saver.restore(self.sess, last_model)
 
     def fit(self):
         for e in six.moves.range(self.epoch):
@@ -120,7 +109,6 @@ class DataFeeder:
         # future work
         return batch
 
-#num_labels = len(list(set(self.train_label)))
 def separete_data():
     # bool型でcross_validationを使って
     # validation dataを作るメソッド 

@@ -15,8 +15,6 @@ class AllConvNetBN:
         self.x = tf.placeholder(tf.float32, [None, self.dim_img, self.dim_img, channel_img])
         self.t = tf.placeholder(tf.float32, [None, self.n_class])
         self.keep_prob = tf.placeholder(tf.float32)
-        #self.train = tf.placeholder(tf.float32)
-        #self.phase_train = tf.placeholder(tf.bool) if self.train else None
         self.phase_train = tf.placeholder(tf.bool) 
         self.output = self.build_network()
         self.pred = self.classify()
@@ -76,7 +74,7 @@ def convnet(x, filter_shape, stride=1, pad='SAME', scope='conv'):
 
 def avg_pool(data, size=6, stride=2):
     avg = tf.nn.avg_pool(data, ksize=[1, size, size, 1],\
-			strides=[1, stride, stride, 1], padding='VALID')
+            strides=[1, stride, stride, 1], padding='VALID')
     return avg
 
 def flatten_layer(x):
@@ -88,22 +86,22 @@ def flatten_layer(x):
 def batch_norm(x, out_channel, phase_train, scope):
     with tf.variable_scope(scope):
         beta = tf.get_variable('beta', dtype=tf.float32, shape=[out_channel],\
-            initializer=tf.truncated_normal_initializer(stddev=0.1))
+            initializer=tf.truncated_normal_initializer(stddev=0.00001))
         gamma = tf.get_variable('gamma', dtype=tf.float32, shape=[out_channel],\
-                initializer=tf.truncated_normal_initializer(stddev=0.1))
+                initializer=tf.truncated_normal_initializer(stddev=0.00001))
         batch_mean, batch_var = tf.nn.moments(x, axes=[0, 1, 2])
+        decay = 0.90
         ema = tf.train.ExponentialMovingAverage(decay=0.5)
 
         def mean_var_with_update():
             ema_apply_op = ema.apply([batch_mean, batch_var])
             with tf.control_dependencies([ema_apply_op]):
                 return tf.identity(batch_mean), tf.identity(batch_var)
-
+        
         mean, var = tf.cond(phase_train, mean_var_with_update,\
                 lambda: (ema.average(batch_mean), ema.average(batch_var)))
-        normed = tf.nn.batch_normalization(x, mean, var, beta,\
-        #normed = tf.batch_norm_with_global_normalization(x, mean, var, beta,\
-                gamma, 1e-3) # scale_after_normalization=True 必要？ 
+        normed = tf.nn.batch_normalization(x, mean, var, beta, gamma, 1e-5) 
+        #normed = tf.nn.batch_normalization(x, batch_mean, batch_var, beta, gamma, 1e-3) 
         out = tf.nn.relu(normed)
     return out 
 
