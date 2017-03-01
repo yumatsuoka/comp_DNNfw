@@ -11,9 +11,9 @@ from tqdm import tqdm
 class Trainer:
     def __init__(self, model, dataset, batchsize=100, epoch=100, lr=1e-3):
         self.model = model
-        self.train_data = dataset['train']['data']
+        self.train_data = dataset['train']['data']/255.
         self.train_label = dataset['train']['target']
-        self.test_data = dataset['test']['data']
+        self.test_data = dataset['test']['data']/255.
         self.test_label = dataset['test']['target']
         self.train_size = len(self.train_label)
         self.test_size = len(self.test_label)

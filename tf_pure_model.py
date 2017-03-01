@@ -85,9 +85,9 @@ def flatten_layer(x):
 def batch_norm(x, out_channel, phase_train, scope):
     with tf.variable_scope(scope):
         beta = tf.get_variable('beta', dtype=tf.float32, shape=[out_channel],\
-            initializer=tf.truncated_normal_initializer(stddev=0.01))
+            initializer=tf.truncated_normal_initializer(stddev=0.001))
         gamma = tf.get_variable('gamma', dtype=tf.float32, shape=[out_channel],\
-                initializer=tf.truncated_normal_initializer(stddev=0.01))
+                initializer=tf.truncated_normal_initializer(stddev=0.001))
         batch_mean, batch_var = tf.nn.moments(x, axes=[0, 1, 2])
         decay = 0.9
         ema = tf.train.ExponentialMovingAverage(decay=decay)
