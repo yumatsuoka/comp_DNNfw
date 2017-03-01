@@ -16,7 +16,7 @@ from tf_pure_trainer import Trainer
 
 # ### Hyper parameters
 
-EPOCH = 20 
+EPOCH = 10 
 BATCH_SIZE = 100
 DATASET_TYPE = "cifar10"
 print("epoch:{}, batch:{}, dataset:{}".format(EPOCH, BATCH_SIZE, DATASET_TYPE))

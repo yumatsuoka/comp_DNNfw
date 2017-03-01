@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 
 class Trainer:
-    def __init__(self, model, dataset, batchsize=100, epoch=100, lr=5e-2):
+    def __init__(self, model, dataset, batchsize=100, epoch=100, lr=1e-3):
         self.model = model
         self.train_data = dataset['train']['data']
         self.train_label = dataset['train']['target']
