@@ -15,6 +15,8 @@ class AllConvNetBN:
         self.n_class = n_class
         self.x = tf.placeholder(tf.float32, [None, self.dim_img, self.dim_img, channel_img])
         self.t = tf.placeholder(tf.float32, [None, self.n_class])
+        self.keep_prob = tf.placeholder(tf.float32)
+        self.phase_train = tf.placeholder(tf.float32)
         self.output = self.build_network()
         self.pred = self.classify()
         self.loss = self.inference_loss()
@@ -52,12 +54,15 @@ class AllConvNetBN:
         return loss
 
     def train(self):
+        # おそらく使わない.
         train_data 
         return 0
 
 class Trainer:
     def __init__(self, model, dataset, epoch=100, lr=1e-3):
-        _dataset = separete_data(datset)
+        # future work
+        #if validate == True
+        #_dataset = separete_data(datset)
         self.model = model
         self.train_data = dataset['train']['data']
         self.train_label = dataset['train']['target']
@@ -70,7 +75,6 @@ class Trainer:
         self.batch_index = self.train_size // self.batchsize
         self.epoch = epoch
         self.learning_rate = lr
-        self.data_augment = False
 
         self.sess = tf.Session()
         self.global_step = tf.Variable(0, name='global_step', trainable=False)
@@ -96,7 +100,8 @@ class Trainer:
                 x_batch = x_train[i*self.batchsize:(i+1)*self.batchsize] 
                 t_batch = t_train[i*self.batchsize:(i+1)*self.batchsize] 
                 if self.data_augment:
-                    x_batch = augument_images(x_batch)
+                    # future work
+                    x_batch = self.datafeeder.augument_images(x_batch)
                 self.optimizer.run(feed_dict={\
                         self.x: x_batch.astype(np.float32), 
                         self.t: t_batch.astype(np.float32)}, session=sess)
@@ -105,13 +110,14 @@ class Trainer:
                         self.t: t_batch.astype(np.float32)}, session=sess)
                 sum_loss += loss_value
             print('# epoch: {}'.format(epoch+1))
-            print('# sum loss: {}'.format(sum_loss))
+            print('# average loss[epoch]: {}'.format(\
+                    sum_loss/self.batch_index))
             print('# validation')
             prediction = np.array([])
             answer = np.array([])
             for i in six.moves.range(0, self.test_size, self.batchsize):
-                x_batch = self.test_data[i: i+self.batchsize]
-                y_batch = self.test_label[i: i+self.batchsize]
+                x_batch = self.test_data[i:i+self.batchsize]
+                y_batch = self.test_label[i:i+self.batchsize]
                 output = self.pred.eval(feed_dict={\
                         self.x: x_batch.astype(np.float32)}, session=sess)
                 prediction = np.concatenate([prediction, np.argmax(output, 1)])
@@ -122,12 +128,20 @@ class Trainer:
 
     
     def test(self, x):
+        # future work
         y = self.model.classify()
         return 0
 
-        
+class DataFeeder:
+    def __init__(self, feed_dict, batchsize=100):
+        self.feed_dict = feed_dict
+        self.batchsize = batchsize
+    
+    def augument_images(self, batch):
+        # future work
+        return batch
 
-num_labels = len(list(set(self.train_label)))
+#num_labels = len(list(set(self.train_label)))
 @static
 def separete_data():
     # bool型でcross_validationを使って
@@ -170,7 +184,7 @@ if __name__ == "__main__":
     model = AllConvNetBN()
     trainer = Trainer(model, dataset, epoch)
     trainer.fit()
-    trainer.test()
+    #trainer.test()
 
         
 #####
