@@ -1,4 +1,4 @@
-# tf_multi_gpu
+# deep learning with multi gpu on some framework
 Run neural network on multi gpu
 
 ## Requiremets
@@ -14,9 +14,11 @@ Run neural network on multi gpu
 dataset = 'cifar10'
 fm = 'tf'
 
+# download dataset
 cifar = cifar10.py if dataset == 'cifar10' else cifar100.py
 python cifar
 
+# run training
 framework = {'tf': tf_pure_cifar.py, 'tfslim': tf_slim_learn_cifar.py,
              'chainer': chainer_cifar.py, 'keras': keras_cifar.py}
 python framework[fm]
