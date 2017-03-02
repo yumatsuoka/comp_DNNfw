@@ -44,7 +44,7 @@ def main():
                         help='Resume the training from snapshot')
 
     args = parser.parse_args()
-    print('# a number of usin GPU: {}'.format(args.gpu_num))
+    print('# a number of using GPU: {}'.format(args.gpu_num))
     print('# Minibatch-size: {}'.format(args.batchsize))
     print('# epoch: {}'.format(args.epoch))
     
