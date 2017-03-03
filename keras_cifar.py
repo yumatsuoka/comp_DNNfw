@@ -15,12 +15,18 @@ from keras.utils import np_utils
 from keras_model import resnet
 from keras_model import allconvnet
 
+from keras_make_parallel import make_parallel
 
+
+### HYPER PARAMETERS ###
 model_choice = 'allconvnet'
-nb_epoch = 2
+num_gpu = 1
+nb_epoch = 3
 batch_size = 100
 nb_classes = 10
 data_augmentation = False
+
+#######################
 
 # input image dimensions
 img_rows, img_cols = 32, 32
@@ -37,9 +43,11 @@ print(X_test.shape[0], 'test samples')
 Y_train = np_utils.to_categorical(y_train, nb_classes)
 Y_test = np_utils.to_categorical(y_test, nb_classes)
 
-## resnet
+## choice model
 _model = resnet if model_choice == 'resnet' else allconvnet
 model = _model(img_channels, img_rows, img_cols, nb_classes)
+## run on multi gpu
+model = make_parallel(model, num_gpu)
 
 # Let's train the model using RMSprop
 model.compile(loss='categorical_crossentropy',
