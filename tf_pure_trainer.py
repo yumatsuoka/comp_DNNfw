@@ -7,6 +7,15 @@ import numpy
 import tensorflow as tf
 from tqdm import tqdm
 
+"""
+# reference on making multi gpu processing
+# tensorflow.optimizer - https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/training/optimizer.py#L257
+# multigpu example 1 - https://github.com/timsainb/Tensorflow-MultiGPU-VAE-GAN/blob/master/VAE-GAN-multi-gpu-celebA.ipynb
+# multigpu example 2 - https://github.com/asheshjain399/Tensormodels/blob/master/tensormodels/multigpu.py
+# multigpu example 3 - https://github.com/distrect9/tensorflow_distribute_multi_gpus/blob/master/multigpu.py
+# multigpu example 4 - https://github.com/tensorflow/models/blob/master/tutorials/image/cifar10/cifar10_multi_gpu_train.py
+
+"""
 
 class Trainer:
     def __init__(self, model, dataset, batchsize=100, epoch=100, num_gpu=1, lr=1e-3):
