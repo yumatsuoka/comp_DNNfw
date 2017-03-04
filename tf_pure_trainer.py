@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 
 class Trainer:
-    def __init__(self, model, dataset, batchsize=100, epoch=100, lr=1e-3):
+    def __init__(self, model, dataset, batchsize=100, epoch=100, num_gpu=1, lr=1e-3):
         self.model = model
         self.train_data = dataset['train']['data']/255.
         self.train_label = dataset['train']['target']
@@ -18,6 +18,7 @@ class Trainer:
         self.train_size = len(self.train_label)
         self.test_size = len(self.test_label)
         self.batchsize = batchsize
+        self.num_gpu = num_gpu
         self.batch_index = self.train_size // self.batchsize
         self.epoch = epoch
         self.learning_rate = lr
@@ -58,11 +59,12 @@ class Trainer:
                         self.model.t: t_batch.astype(numpy.float32),
                         self.model.phase_train: True,\
                         self.model.keep_prob: 0.8,}, session=self.sess)
-                loss_value = self.model.loss.eval(feed_dict={\
+                logit_value, loss_value = self.model.loss_logits.eval(feed_dict={\
                         self.model.x: x_batch.astype(numpy.float32),\
                         self.model.t: t_batch.astype(numpy.float32),\
                         self.model.phase_train: True,\
                         self.model.keep_prob: 1.0,}, session=self.sess)
+                sum
                 sum_loss += loss_value
             print('# epoch: {}'.format(e+1))
             self.dump_log['epoch'][e] = e+1
@@ -94,26 +96,72 @@ class Trainer:
         with open('tf_train_log.pkl', mode='wb') as f:
             six.moves.cPickle.dump(self.dump_log, f, protocol=2)
 
-    
+    def multigpu_train(self):
+        tower_grads = []
+        for i in range(self.num_gpu):
+            with tf.device('/gpu:%d' %i):
+                with tf.namescope('Tower_%d' %i) as scope:
+                    next_batch = all_input[i*self.batchsize:(i+1)*self.batchsize, :]
+                    logits = self.model.pred(next_batch)
+                    loss = tf.reduce_mean(tf.softmax_cross_entropy_with_logits(logits=logits, labels=self.t))
+		    loss = self.model.inference_loss(feed_dict={\
+	            self.model.x: x_batch.astype(numpy.float32), 
+		    self.model.t: t_batch.astype(numpy.float32),
+		    self.model.phase_train: True,\
+		    self.model.keep_prob: 0.8,}, session=self.sess)
+                    # make <list of variables>
+                    params = tf.trainable_variables()
+                    var_list = [j for j in params]
+                    tf.get_variable_scope().reuse_variables()
+                    one_grads = self.optimizer.compute_gradients(loss, var_list=var_list)
+                    tower_grads.append(one_grads)
+                       
+        overall_loss = culc_overall_loss(tower_grads, culc_way='sum')
+        self.optimizer.apply_gradients(overall_loss, self.global_step) 
+        return logits, loss
+ 
     def test(self, x):
         # future work
         y = self.model.classify(x)
         return 0
 
-class DataFeeder:
-    def __init__(self, feed_dict, batchsize=100):
-        self.feed_dict = feed_dict
-        self.batchsize = batchsize
-    
-    def augument_images(self, batch):
-        # future work
-        return batch
 
-def separete_data():
-    # bool型でcross_validationを使って
-    # validation dataを作るメソッド 
-    # ついでにpermutate 
-    return 0
+def culc_overall_loss(tower_grads, culc_way='sum'):
+    """Calculate the average gradient for each shared variable across all towers.
+    Note that this function provides a synchronization point across all towers.
+    Args:
+    tower_grads: List of lists of (gradient, variable) tuples. The outer list
+      is over individual gradients. The inner list is over the gradient
+      calculation for each tower.
+    Returns:
+     List of pairs of (gradient, variable) where the gradient has been averaged
+     across all towers.
+    https://github.com/tensorflow/tensorflow/blob/r0.10/tensorflow/models/image/cifar10/cifar10_multi_gpu_train.py
+    """
+    average_grads = []
+    for grad_and_vars in zip(*tower_grads):
+        # Note that each grad_and_vars looks like the following:
+        #   ((grad0_gpu0, var0_gpu0), ... , (grad0_gpuN, var0_gpuN))
+        grads = []
+        for g, _ in grad_and_vars:
+            # Add 0 dimension to the gradients to represent the tower.
+            expanded_g = tf.expand_dims(g, 0)
+
+            # Append on a 'tower' dimension which we will average over below.
+            grads.append(expanded_g)
+
+        # Average over the 'tower' dimension.
+        grad = tf.concat(0, grads)
+        grad = tf.reduce_mean(grad, 0) if culc_way == 'average' else tf.reduce_sum(grad, 0)
+
+        # Keep in mind that the Variables are redundant because they are shared
+        # across towers. So .. we will just return the first tower's pointer to
+        # the Variable.
+        v = grad_and_vars[0][1]
+        grad_and_var = (grad, v)
+        average_grads.append(grad_and_var)
+    return average_grads
+
 
 def dense_to_one_hot(labels_dense, n_values):
     ### convert train and test label to one-hot vector

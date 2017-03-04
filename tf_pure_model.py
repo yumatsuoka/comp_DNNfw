@@ -25,6 +25,13 @@ class CNN:
                 logits=self.pred, labels=self.t))
         return loss
 
+    def loss_logits(self):
+        logits = self.classify()
+        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(\
+                logits=logits, labels=self.t))
+        return logits, loss
+        
+
 
 class ResNet(CNN):
     def __init__(self, dim_img=32, channel_img=3, n_class=10, n=56):

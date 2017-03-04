@@ -15,10 +15,10 @@ from tf_pure_model import AllConvNetBN, ResNet
 from tf_pure_trainer import Trainer
 
 # ### Hyper parameters
-
+NUM_GPU = 1
 EPOCH = 10 
 BATCH_SIZE = 100
-MODEL_TYPE = "resnet"
+MODEL_TYPE = "allconvnet"
 DATASET_TYPE = "cifar10"
 print("epoch:{}, batch:{}, dataset:{}".format(EPOCH, BATCH_SIZE, DATASET_TYPE))
 
@@ -32,5 +32,6 @@ print("# train_size:{}, image_size:{}, num_channels:{}, num_labels:{}".format(
 
 ## training 
 model = ResNet if MODEL_TYPE == 'resnet' else AllConvNetBN
-trainer = Trainer(model(n_class=num_labels), dataset=dataset, batchsize=BATCH_SIZE, epoch=EPOCH)
+trainer = Trainer(model(n_class=num_labels), dataset=dataset,\
+        batchsize=BATCH_SIZE, epoch=EPOCH, num_gpu=NUM_GPU)
 trainer.fit()
