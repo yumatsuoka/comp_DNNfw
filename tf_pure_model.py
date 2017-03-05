@@ -25,8 +25,8 @@ class CNN:
                 logits=self.pred, labels=self.t))
         return loss
 
-    def loss_logits(self):
-        logits = self.classify()
+    def logits_loss(self):
+        logits = self.pred()
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(\
                 logits=logits, labels=self.t))
         return logits, loss
