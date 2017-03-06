@@ -34,6 +34,7 @@ print("# train_size:{}, image_size:{}, num_channels:{}, num_labels:{}".format(
 
 ## training
 model = ResNet if MODEL_TYPE == 'resnet' else AllConvNetBN
-trainer = StandardTrainer(model(n_class=num_labels), train_data, val_data, BATCH_SIZE)
+#trainer = StandardTrainer(model(n_class=num_labels), train_data, val_data, BATCH_SIZE)
+trainer = Multigpu_trainer(model(n_class=num_labels), train_data, val_data, BATCH_SIZE, num_gpus=NUM_GPU)
 trainer.fit(epoch=EPOCH)
 # trainer.test(test_data)
