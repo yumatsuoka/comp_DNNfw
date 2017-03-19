@@ -17,12 +17,21 @@ class CNN:
         pass
 
     def classify(self):
+        print("tower_loss, before  self.model.classify()")
         logits = tf.nn.softmax(self.output)
+        print("tower_loss, after  self.model.classify()")
         return logits
     
     def inference_loss(self):
-        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(\
-                logits=self.pred, labels=self.t))
+        print("tower_loss, before self.model.loss()")
+
+        #loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(\
+        _loss = tf.nn.softmax_cross_entropy_with_logits(\
+                logits=self.pred, labels=self.t)
+        print("tower_loss, after  self.model.loss()")
+        loss = tf.reduce_mean(_loss)
+        print("tower_loss, after  self.model.reducemean()")
+        print(loss)
         return loss
 
     def logits_loss(self):
@@ -30,7 +39,7 @@ class CNN:
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(\
                 logits=logits, labels=self.t))
         return logits, loss
-        
+     
 
 
 class ResNet(CNN):
