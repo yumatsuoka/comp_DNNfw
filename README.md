@@ -37,4 +37,4 @@ python framework[fm]
 - tf_pure_cifar.py => run neural net model with tensorflow contrib API
 - tf_pure_datafeeder.py => note datafeeder(this is future work)
 - tf_pure_model.py => note neural net model with the tensorflow API
-- tf_pure_trainer.py => note trainer on single and multi gpu 
+- tf_pure_trainer.py => note trainer on single and multi gpu(can't run multi one)
