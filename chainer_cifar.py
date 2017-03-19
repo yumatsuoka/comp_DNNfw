@@ -36,7 +36,7 @@ def main():
                         help='a number of GPU(negative value indicates CPU)')
     parser.add_argument('--gpu', '-g', type=int, default=0,
                         help='main GPU ID (negative value indicates CPU)')
-    parser.add_argument('--model', '-m', default='resnet',
+    parser.add_argument('--model', '-m', default='allconvnet',
                         help='choose training model')
     parser.add_argument('--out', '-o', default='result',
                         help='Directory to output the result')
