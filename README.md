@@ -3,7 +3,7 @@ Run neural network on multi gpu
 
 ## Requiremets
 - chainer==1.21.0
-- conda==4.3.8
+- conda3==4.3.8
 - Keras==1.2.2
 - scikit-learn==0.18.1
 - tensorflow-gpu==1.0.0
@@ -25,14 +25,16 @@ python framework[fm]
 ```
 
 ## Code
-- pure_tf_cifar.py => run tensorflow code with "pure-tensorflow modules"
 - chainer_cifar.py => run chainer code
 - chainer_model.py => note neural net model
-- keras_cifar.py => run chainer code
-- keras_model.py => note neural net model
-- tf_cifar.py => run neural net model with tensorflow contrib API
-- tf_model.py => note neural net model with the tensorflow API
 - cifar10.py => download cifar10 datset and make it dict
 - cifar100.py => download cifar100 datset and make it dict
+- keras_cifar.py => run chainer code
+- keras_make_parallel.py => note multi gpu processing
+- keras_model.py => note neural net model
 - ln_cifar_dataset.py => make synbolic link about cifar dataset
-- run_annie.py => run some test to observe gpu trianing on some env
+- run_experiment.py => run some test to observe gpu trianing on some env
+- tf_pure_cifar.py => run neural net model with tensorflow contrib API
+- tf_pure_datafeeder.py => note datafeeder(this is future work)
+- tf_pure_model.py => note neural net model with the tensorflow API
+- tf_pure_trainer.py => note trainer on single and multi gpu 
