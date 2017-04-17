@@ -20,7 +20,7 @@ from keras_make_parallel import make_parallel
 
 ### HYPER PARAMETERS ###
 model_choice = 'allconvnet'
-num_gpu = 1
+num_gpu = 2
 nb_epoch = 3
 batch_size = 100
 nb_classes = 10
