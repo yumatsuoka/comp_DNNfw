@@ -6,9 +6,10 @@ import os
 import urllib
 import gzip
 import struct
-
+import mxnet as mx
 import logging
 logging.getLogger().setLevel(logging.DEBUG)
+
 
 def download_data(url, force_download=True): 
     fname = url.split("/")[-1]
@@ -32,21 +33,16 @@ path='http://yann.lecun.com/exdb/mnist/'
     path+'t10k-labels-idx1-ubyte.gz', path+'t10k-images-idx3-ubyte.gz')
 
 
-import mxnet as mx
-
 def to4d(img):
     return img.reshape(img.shape[0], 1, 28, 28).astype(np.float32)/255
-
-###debug
-print(train_lbl[:10])
-###
 
 batch_size = 100
 train_iter = mx.io.NDArrayIter(to4d(train_img), train_lbl, batch_size, shuffle=True)
 val_iter = mx.io.NDArrayIter(to4d(val_img), val_lbl, batch_size)
 
+
 """
-#########
+######### multi layer neural network's codes
 # Create a place holder variable for the input data
 data = mx.sym.Variable('data')
 # Flatten the data from 4-D shape (batch_size, num_channel, width, height) 
@@ -68,6 +64,8 @@ fc3  = mx.sym.FullyConnected(data=act2, name='fc3', num_hidden=10)
 mlp  = mx.sym.SoftmaxOutput(data=fc3, name='softmax')
 #########
 """
+
+######### convolutional neural network's codes
 data = mx.symbol.Variable('data')
 # first conv layer
 conv1 = mx.sym.Convolution(data=data, kernel=(5,5), num_filter=20)
@@ -85,8 +83,10 @@ tanh3 = mx.sym.Activation(data=fc1, act_type="tanh")
 fc2 = mx.sym.FullyConnected(data=tanh3, num_hidden=10)
 # softmax loss
 lenet = mx.sym.SoftmaxOutput(data=fc2, name='softmax')
+#########
 
 
+### model and fit
 model = mx.mod.Module(
         context=mx.gpu(0),
         symbol = lenet,
@@ -96,43 +96,10 @@ model.fit(
         train_data=train_iter,
         eval_data=val_iter,
         num_epoch = 40,
-        #optimizer='adam',
-        #eval_metric=['acc', 'ce'],
         batch_end_callback = mx.callback.Speedometer(batch_size, 100)
         )
 
-"""
-model = mx.model.FeedForward(
-    ctx = mx.gpu(0),     # use GPU 0 for training, others are same as before
-    symbol = lenet,       
-    num_epoch = 100,     
-    learning_rate = 0.1)
-
-model.fit(
-    X=train_iter,  
-    eval_data=val_iter, 
-    batch_end_callback = mx.callback.Speedometer(batch_size, 100)
-) 
-"""
-
-#model = mx.model.FeedForward(
-#    ctx = mx.gpu(0),     # use GPU 0 for training, others are same as before
-#    symbol = lenet,       
-#    num_epoch = 100,     
-#    learning_rate = 0.1)
-#
-#model.fit(
-#    X=train_iter,  
-#    eval_data=val_iter, 
-#    batch_end_callback = mx.callback.Speedometer(batch_size, 100)
-#) 
-
-
-### model and fit
-
-#import logging
-#logging.getLogger().setLevel(logging.DEBUG)
-#
+#old versions
 #model = mx.model.FeedForward(
 #    symbol = mlp,       # network structure
 #    num_epoch = 10,     # number of data passes for training 
