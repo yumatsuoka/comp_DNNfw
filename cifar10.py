@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 import numpy as np
 import six  
 from six.moves.urllib import request
@@ -28,7 +27,7 @@ def convert_train_image():
             data[i*batchsize:(i+1)*batchsize] = batch['data'].reshape(batchsize, 32, 32, 3)
             labels[i*batchsize:(i+1)*batchsize] = batch['labels']
         # if use chainer, replace above line to below one
-        #data = data.transpose(0, 2, 3, 1) 
+        data = data.transpose(0, 3, 1, 2) 
     return data, labels
 
 def convert_test_image():
@@ -39,15 +38,15 @@ def convert_test_image():
         batch = six.moves.cPickle.load(r_data, encoding='latin1')
         data = batch['data'].reshape(batchsize, 32, 32, 3)
         # if use chainer, remove commentout
-        #data = data.transpose(0, 2, 3, 1)
+        data = data.transpose(0, 3, 1, 2)
         labels = np.asarray(batch['labels']).astype(np.uint8)
     return data, labels
 
 
 def load(name='cifar10.pkl'):
     with open(name, 'rb') as data:
-        cifar10 = six.moves.cPickle.load(data)
-        #cifar10 = six.moves.cPickle.load(data, encoding='latin1')
+        #cifar10 = six.moves.cPickle.load(data)
+        cifar10 = six.moves.cPickle.load(data, encoding='latin1')
     return cifar10
 
 

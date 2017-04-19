@@ -14,8 +14,8 @@ from mxnet_model import resnet, allconvnet, shallownet
 
 
 # ### Hyper parameters
-GPUS = [mx.gpu(0)]
-EPOCH = 10 
+GPUS = [mx.gpu(0), mx.gpu(1)]
+EPOCH = 20 
 BATCH_SIZE = 100
 MODEL_TYPE = "allconvnet"
 DATASET_TYPE = "cifar10"
@@ -29,6 +29,9 @@ dataset = dataset_load.load()
 train_data = dataset['train']['data'].astype(np.float32)/255.
 train_size, image_size, _, num_channels = train_data.shape
 num_labels  = len(list(set(dataset['train']['target'])))
+
+#train_lbl = mx.nd.one_hot(mx.nd.array(dataset['train']['target'].astype(np.int8)), num_labels)
+#val_lbl = mx.nd.one_hot(mx.nd.array(dataset['test']['target'].astype(np.int8)), num_labels)
 
 train_lbl = dataset['train']['target'].astype(np.int8)
 val_data = dataset['test']['data'].astype(np.float32)/255.

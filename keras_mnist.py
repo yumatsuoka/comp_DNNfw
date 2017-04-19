@@ -1,6 +1,7 @@
 # coding:utf-8
 
 from __future__ import print_function
+import tensorflow as tf
 import keras
 from keras.datasets import mnist
 from keras.models import Sequential
@@ -17,6 +18,7 @@ from keras.models import Model
 from keras.layers import Input
 from keras.layers.core import Lambda
 from keras.layers.merge import Concatenate
+
 def slice_batch(x, n_gpus, part):
     """
     Divide the input batch into [n_gpus] slices, and obtain slice no. [part].

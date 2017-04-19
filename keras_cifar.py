@@ -16,12 +16,13 @@ from keras_model import resnet
 from keras_model import allconvnet
 
 from keras_make_parallel import make_parallel
+from keras_mnist import to_multi_gpu
 
 
 ### HYPER PARAMETERS ###
 model_choice = 'allconvnet'
 num_gpu = 2
-nb_epoch = 3
+nb_epoch = 20
 batch_size = 100
 nb_classes = 10
 data_augmentation = False
@@ -46,8 +47,10 @@ Y_test = np_utils.to_categorical(y_test, nb_classes)
 ## choice model
 _model = resnet if model_choice == 'resnet' else allconvnet
 model = _model(img_channels, img_rows, img_cols, nb_classes)
+
 ## run on multi gpu
-model = make_parallel(model, num_gpu)
+#model = make_parallel(model, num_gpu)
+model = to_multi_gpu(model, num_gpu)
 
 # Let's train the model using RMSprop
 model.compile(loss='categorical_crossentropy',
@@ -56,8 +59,8 @@ model.compile(loss='categorical_crossentropy',
 
 X_train = X_train.astype('float32')
 X_test = X_test.astype('float32')
-X_train /= 255
-X_test /= 255
+X_train /= 255.
+X_test /= 255.
 
 if not data_augmentation:
     print('Not using data augmentation.')
