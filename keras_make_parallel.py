@@ -1,53 +1,39 @@
-# https://github.com/kuza55/keras-extras/blob/master/utils/multi_gpu.py
+# coding:utf-8
 
-from keras.layers import merge
-from keras.layers.core import Lambda
-from keras.models import Model
-
+from __future__ import print_function
+import keras
 import tensorflow as tf
+from keras import backend as K
+from keras.models import Sequential, Model
+from keras.layers import Input
+from keras.layers.core import Lambda
+from keras.layers.merge import Concatenate
 
-def make_parallel(model, gpu_count):
-    def get_slice(data, idx, parts):
-        shape = tf.shape(data)
-        # this tf.concat() is changed by tf v1.0. fixed by yuma matsuoka.
-        size = tf.concat([ shape[:1] // parts, shape[1:] ], 0)
-        stride = tf.concat([ shape[:1] // parts, shape[1:]*0 ], 0)
-        start = stride * idx
-        return tf.slice(data, start, size)
 
-    outputs_all = []
-    for i in range(len(model.outputs)):
-        outputs_all.append([])
-
-    #Place a copy of the model on each GPU, each getting a slice of the batch
-    for i in range(gpu_count):
-        with tf.device('/gpu:%d' % i):
-            with tf.name_scope('tower_%d' % i) as scope:
-
-                inputs = []
-                #Slice each input into a piece for processing on this GPU
-                for x in model.inputs:
-                    input_shape = tuple(x.get_shape().as_list())[1:]
-                    slice_n = Lambda(get_slice, output_shape=input_shape, arguments={'idx':i,'parts':gpu_count})(x)
-                    inputs.append(slice_n)                
-
-                outputs = model(inputs)
+def slice_batch(x, n_gpus, part):
+    sh = K.shape(x)
+    L = sh[0] / n_gpus
+    if part == n_gpus - 1:
+        return x[part*L:]
+    return x[part*L:(part+1)*L]
+            
+        
+def to_multi_gpu(model, n_gpus=2):
+    if n_gpus == 1:
+        return model
+    else:
+        with tf.device('/cpu:0'):
+            x = Input(model.input_shape[1:], name="test")
+            
+        towers = []
+        # Assign a part of batch to all GPU
+        for g in range(n_gpus):
+            with tf.device('/gpu:' + str(g)):
+                slice_g = Lambda(slice_batch, lambda shape: shape, arguments={'n_gpus':n_gpus, 'part':g})(x)
+                towers.append(model(slice_g))
                 
-                if not isinstance(outputs, list):
-                    outputs = [outputs]
-                
-                #Save all the outputs for merging back together later
-                for l in range(len(outputs)):
-                    outputs_all[l].append(outputs[l])
-
-    # merge outputs on CPU
-    with tf.device('/cpu:0'):
-        if len(outputs_all) <= 1:
-            return Model(input=model.inputs, output=outputs_all[0])
-        else:
-            merged = []
-            for outputs in outputs_all:
-                merged.append(merge(outputs, mode='concat', concat_axis=0))
-                
-            return Model(input=model.inputs, output=merged)
-
+        with tf.device('/cpu:0'):
+            merged = Concatenate(axis=0)(towers)
+            
+        return Model(inputs=[x], outputs=[merged])
+        

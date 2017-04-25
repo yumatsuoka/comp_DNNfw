@@ -30,7 +30,7 @@ def main():
                         help='Number of images in each mini-batch')
     parser.add_argument('--same_batch', '-s', type=bool, default=False,
                         help='if True and use multi gpu, batchsize*gpu_num')
-    parser.add_argument('--epoch', '-e', type=int, default=10,
+    parser.add_argument('--epoch', '-e', type=int, default=20,
                         help='Number of sweeps over the dataset to train')
     parser.add_argument('--gpu_num', '-gn', type=int, default=1,
                         help='a number of GPU(negative value indicates CPU)')
