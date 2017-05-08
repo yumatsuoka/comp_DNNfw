@@ -2,11 +2,12 @@
 Run neural network on multi gpu
 
 ## Requiremets
-- chainer==1.21.0
+- chainer==1.23.0
 - conda3==4.3.8
-- Keras==1.2.2
+- keras==2.0.3
+- mxnet-cu80==0.9.5
 - scikit-learn==0.18.1
-- tensorflow-gpu==1.0.0
+- tensorflow-gpu==1.0.1
 
 ## How to use
 
