@@ -81,12 +81,6 @@ def resnet_block_fast(input_data, num_filter, name):
     return conv3 + conv1
 
 def resnet(num_labels=10):
-    """
-    LeCun, Yann, Leon Bottou, Yoshua Bengio, and Patrick
-    Haffner. "Gradient-based learning applied to document recognition."
-    Proceedings of the IEEE (1998)
-    This is from https://github.com/youansheng/fast_center_loss/blob/master/train.py
-    """
     data = mx.symbol.Variable('data')
 
     conv1 = mx.symbol.Convolution(data=data, kernel=(3, 3), 
